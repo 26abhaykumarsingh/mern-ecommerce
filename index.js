@@ -41,11 +41,9 @@ server.post(
     let event = request.body;
     // Only verify the event if you have an endpoint secret defined.
     // Otherwise use the basic event deserialized with JSON.parse
-    console.log("endpointSecret", endpointSecret);
     if (endpointSecret) {
       // Get the signature sent by Stripe
       const signature = request.headers["stripe-signature"];
-      console.log("signature", signature);
       try {
         event = stripe.webhooks.constructEvent(
           request.body,
