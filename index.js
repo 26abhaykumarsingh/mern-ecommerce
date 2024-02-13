@@ -23,6 +23,7 @@ const cartRouters = require("./routes/Cart");
 const ordersRouters = require("./routes/Orders");
 const { User } = require("./model/User");
 const { isAuth, sanitizeUser, cookieExtractor } = require("./services/common");
+const { Order } = require("./model/Order");
 
 //Webhook
 
@@ -37,7 +38,7 @@ const endpointSecret = process.env.ENDPOINT_SECRET;
 server.post(
   "/webhook",
   express.raw({ type: "application/json" }),
-  (request, response) => {
+  async (request, response) => {
     let event = request.body;
     // Only verify the event if you have an endpoint secret defined.
     // Otherwise use the basic event deserialized with JSON.parse
@@ -52,25 +53,26 @@ server.post(
         );
       } catch (err) {
         console.log(`⚠️  Webhook signature verification failed.`, err.message);
-        return response.sendStatus(400);
+        response.status(400).send(`Webhook Error : ${err.message}`);
+        return;
       }
     }
 
     // Handle the event
     switch (event.type) {
       case "payment_intent.succeeded":
-        const paymentIntent = event.data.object;
-        console.log(
-          `PaymentIntent for ${paymentIntent.amount} was successful!`
+        const paymentIntentSucceeded = event.data.object;
+
+        const order = await Order.findById(
+          paymentIntentSucceeded.metadata.orderId
         );
+        order.paymentStatus = "received";
+        await order.save();
+
         // Then define and call a method to handle the successful payment intent.
         // handlePaymentIntentSucceeded(paymentIntent);
         break;
-      case "payment_method.attached":
-        const paymentMethod = event.data.object;
-        // Then define and call a method to handle the successful attachment of a PaymentMethod.
-        // handlePaymentMethodAttached(paymentMethod);
-        break;
+      // ... handle other event types
       default:
         // Unexpected event type
         console.log(`Unhandled event type ${event.type}.`);
