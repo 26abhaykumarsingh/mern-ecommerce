@@ -62,7 +62,6 @@ server.post(
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntent = event.data.object;
-        console.log({ paymentIntentSucceeded });
         console.log(
           `PaymentIntent for ${paymentIntent.amount} was successful!`
         );
