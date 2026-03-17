@@ -46,7 +46,7 @@ exports.fetchAllProducts = async (req, res) => {
     }); // "title" : "order"
   }
 
-  const totalDocs = await totalProductsQuery.count().exec(); //mongodb doesnt add X-total-count header, so we adding it ourselves
+  const totalDocs = await totalProductsQuery.countDocuments().exec(); // Mongoose 7+ uses countDocuments(); count() was removed
 
   if (req.query._page && req.query._limit) {
     const pageSize = req.query._limit;
